@@ -1,3 +1,5 @@
 python-dotenv==0.21.0
-discord==2.0.0
+discord-py-interactions==4.3.4
 rcon==2.3.6
+requests==2.28.1
+mcstatus==10.0.1
