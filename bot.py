@@ -2,6 +2,7 @@ import os
 import interactions
 import function
 import service
+from pip._vendor import requests
 from model import Response, ResponseType
 
 token = os.environ.get("CLIENT_ID")
@@ -26,8 +27,9 @@ bot = interactions.Client(token)
     scope=guild,
 )
 async def start(ctx):
-    res = function.start_ec2()
-    await ctx.send(res, ephemeral=True)
+    await ctx.defer(ephemeral=True)
+    res = await service.start_ec2()
+    await ctx.send(res.msg)
 
 
 @bot.command(
