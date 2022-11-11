@@ -9,7 +9,8 @@ class ResponseType(Enum):
 
 
 class Response:
-    def __init__(self, type, msg) -> None:
+    def __init__(self, type, msg, params=[]) -> None:
         self.type: ResponseType = type
         self.msg: str = msg
+        self.params: list(str) = params
         pass
