@@ -24,3 +24,7 @@ async def start_ec2():
             ResponseType.IGNORE,
             f"ℹ The server is already running and has {function.number_of_players()} player(s) online",
         )
+
+
+async def status():
+    return function.status()

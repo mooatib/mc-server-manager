@@ -6,25 +6,22 @@ from interactions import (
     Client,
     PresenceActivity,
     ClientPresence,
+    Embed,
+    EmbedField,
 )
 import function
 import service
-from pip._vendor import requests
 from model import Response, ResponseType
 
 token = os.environ.get("CLIENT_ID")
 guild_id = os.environ.get("GUILD_ID")
 
 presence_activity = PresenceActivity(name="Minecraft", type=1)
-
 up_presence = ClientPresence(activities=[presence_activity], status="online", afk=False)
-
 down_presence = ClientPresence(status="idle", afk=True)
 
 proceed_button = Button(style=ButtonStyle.DANGER, label="Proceed", custom_id="proceed")
-
 abort_button = Button(style=ButtonStyle.PRIMARY, label="Abort", custom_id="abort")
-
 proceed_abort_row = ActionRow.new(proceed_button, abort_button)
 
 bot = Client(token, scope=guild_id, presence=down_presence)
@@ -54,6 +51,16 @@ async def stop(ctx):
         await proceed(ctx)
     else:
         await ctx.send(res.msg)
+
+
+@bot.command(
+    name="status",
+    description="Get information about the server, such as the list of connected players",
+)
+async def status(ctx):
+    await ctx.defer(ephemeral=True)
+    status_embeds = await service.status()
+    await ctx.send(embeds=status_embeds)
 
 
 ###COMPONENTS###
