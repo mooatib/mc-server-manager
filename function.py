@@ -3,11 +3,11 @@ from dotenv import load_dotenv
 from pip._vendor import requests
 from mcstatus import JavaServer
 from model import Response, ResponseType
-from interactions import Embed, EmbedField
+from interactions import Embed, EmbedField, EmbedImageStruct
 
 load_dotenv()
 
-server = JavaServer(os.environ.get("IP"))
+server_data = str()
 
 
 def start_ec2():
@@ -31,61 +31,93 @@ def stop_ec2():
 
 
 def status():
-    server_state = is_server_running()
-    title = (":no_entry:  Offline", ":white_check_mark:  Online")[server_state]
-    color = (0xFF0000, 0x32CD32)[server_state]
-
-    if server_state:
-        return [
-            Embed(
-                title=title,
-                color=color,
-                fields=[
-                    EmbedField(
-                        name=":busts_in_silhouette:  Players :",
-                        value=players_name(),
-                        inline=False,
-                    )
-                ],
-            )
-        ]
-    else:
-        [
-            Embed(
-                title=title,
-                color=color,
-                fields=[],
-            )
-        ]
+    return embed_status_builder()
 
 
 def is_server_running():
-    try:
-        server.ping()
-        return True
-    except (TimeoutError, ConnectionRefusedError):
-        return False
+    update_server_data()
+    return bool(server_data["online"])
 
 
 def number_of_players():
-    status = server.status()
-    return status.players.online
+    try:
+        return server_data["players"]["online"]
+    except Exception:
+        return 0
 
 
 def get_players():
-    status = server.status()
-    query = server.query()
-    players = status.raw["players"]["sample"]
-    print(players)
-    print(query)
+    try:
+        players = server_data["players"]["list"]
+    except Exception:
+        players = "No players"
     return players
+
+
+def motd():
+    try:
+        return (
+            str(server_data["motd"]["clean"])
+            .replace("'", "")
+            .replace("[", "")
+            .replace("]", "")
+        )
+    except Exception:
+        return ""
 
 
 def players_name():
     players = get_players()
-    return (
-        str([user["name"] for user in players])
-        .replace("'", "")
-        .replace("[", "")
-        .replace("]", "")
+    return str(players).replace("'", "").replace("[", "").replace("]", "")
+
+
+def player_ratio():
+    try:
+        ratio = str(server_data["players"]["max"])
+        return "".join([str(server_data["players"]["online"]), "/", ratio])
+    except Exception:
+        return ""
+
+
+def update_server_data():
+    global server_data
+    server_data = requests.get(
+        "".join(["https://api.mcsrvstat.us/2/", os.environ.get("IP")])
+    ).json()
+
+
+def embed_status_builder():
+    server_state = is_server_running()
+    server_state_title = ("Offline", "Online")[server_state]
+    color = (0xFF0000, 0x32CD32)[server_state]
+
+    embed = Embed(
+        title=os.environ.get("IP"),
+        color=color,
+        description=motd(),
+        thumbnail=EmbedImageStruct(
+            url="".join(["https://api.mcsrvstat.us/icon/", os.environ.get("IP")])
+        ),
+        fields=[
+            EmbedField(name="Status", value=server_state_title, inline=True),
+        ],
     )
+
+    if server_state:
+        embed.add_field(
+            name="Player count",
+            value=player_ratio(),
+            inline=True,
+        ),
+        embed.add_field(
+            name="Version",
+            value=str(server_data["version"]),
+            inline=True,
+        )
+        embed.add_field(
+            name="Players",
+            value=players_name(),
+            inline=False,
+        ),
+
+    return embed
