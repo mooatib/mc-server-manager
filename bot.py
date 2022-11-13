@@ -58,7 +58,7 @@ async def stop(ctx):
     description="Get information about the server, such as the list of connected players",
 )
 async def status(ctx):
-    await ctx.defer(ephemeral=True)
+    await ctx.defer(ephemeral=False)
     status_embeds = await service.status()
     await ctx.send(embeds=status_embeds)
 
