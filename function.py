@@ -1,13 +1,14 @@
 import os
 from dotenv import load_dotenv
 from pip._vendor import requests
-from mcstatus import JavaServer
 from model import Response, ResponseType
 from interactions import Embed, EmbedField, EmbedImageStruct
 
 load_dotenv()
 
 server_data = str()
+
+scheduled = []
 
 
 def start_ec2():
@@ -28,6 +29,23 @@ def stop_ec2():
     if res.status_code == 200:
         return Response(ResponseType.OK, ":white_check_mark: Server stopped.")
     return Response(ResponseType.ERROR, res.text)
+
+
+def parse_delay(delay):
+    return sum(x * float(t) for x, t in zip([1, 60, 3600], reversed(delay.split(":"))))
+
+
+def schedule(timer):
+    print("Timer started")
+    scheduled.append(timer)
+    print("Added in scheduled list")
+
+
+async def unscheduled(timer):
+    timer.cancel()
+    print("Timer canceled")
+    scheduled.append(timer)
+    print("removed from scheduled list")
 
 
 def status():

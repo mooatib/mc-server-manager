@@ -1,3 +1,4 @@
+import asyncio
 import os
 from interactions import (
     Button,
@@ -6,12 +7,11 @@ from interactions import (
     Client,
     PresenceActivity,
     ClientPresence,
-    Embed,
-    EmbedField,
+    option,
 )
 import function
 import service
-from model import Response, ResponseType
+from model import Response, ResponseType, Timer
 
 token = os.environ.get("CLIENT_ID")
 guild_id = os.environ.get("GUILD_ID")
@@ -38,13 +38,24 @@ async def start(ctx):
     await bot.change_presence(up_presence)
 
 
+@bot.command(name="schedule", description="test schedule")
+@option(name="action", description="action")
+@option(name="delay", description="time format hh:mm:ss")
+async def schedule(ctx, action: str, delay_option: str):
+    await ctx.send(f"Scheduled a {action} in {delay_option}")
+    delay = function.parse_delay(delay_option)
+    print(delay)
+    t = Timer(delay, stop(ctx, ignore_warning=True))
+    service.schedule(t)
+
+
 @bot.command(
     name="stop",
     description="Stop EC2 instance",
 )
-async def stop(ctx):
+async def stop(ctx, ignore_warning: bool = False):
     await ctx.defer(ephemeral=True)
-    res = await service.stop_ec2()
+    res = await service.stop_ec2(ignore_warning)
     if res.type == ResponseType.WARNING:
         await ctx.send(res.msg, components=proceed_abort_row)
     elif res.type == ResponseType.OK:
