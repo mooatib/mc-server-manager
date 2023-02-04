@@ -29,22 +29,22 @@ bot = Client(token, scope=guild_id, presence=down_presence)
 ###COMMANDS###
 @bot.command(
     name="start",
-    description="Start EC2 instance",
+    description="Start Minecraft docker container",
 )
 async def start(ctx):
     await ctx.defer(ephemeral=True)
-    res = await service.start_ec2()
+    res = await service.start_container()
     await ctx.send(res.msg)
     await bot.change_presence(up_presence)
 
 
 @bot.command(
     name="stop",
-    description="Stop EC2 instance",
+    description="Stop Minecraft docker container",
 )
 async def stop(ctx):
     await ctx.defer(ephemeral=True)
-    res = await service.stop_ec2()
+    res = await service.stop_container()
     if res.type == ResponseType.WARNING:
         await ctx.send(res.msg, components=proceed_abort_row)
     elif res.type == ResponseType.OK:
@@ -66,7 +66,7 @@ async def status(ctx):
 ###COMPONENTS###
 @bot.component("proceed")
 async def proceed(ctx):
-    res = function.stop_ec2()
+    res = function.stop_container()
     await ctx.send(res.msg, ephemeral=True)
     await bot.change_presence(down_presence)
 
