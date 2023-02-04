@@ -2,7 +2,7 @@ import function
 from model import Response, ResponseType
 
 
-async def stop_ec2():
+async def stop_container():
     if function.is_server_running():
         nbr = function.number_of_players()
         if nbr:
@@ -11,14 +11,14 @@ async def stop_ec2():
                 f""":warning: {nbr} player(s) are actually playing. \r Do you really want to stop the server ?""",
             )
         else:
-            return function.stop_ec2()
+            return function.stop_container()
     else:
         return Response(ResponseType.IGNORE, "ℹ The server is already stopped.")
 
 
-async def start_ec2():
+async def start_container():
     if not function.is_server_running():
-        return function.start_ec2()
+        return function.start_container()
     else:
         return Response(
             ResponseType.IGNORE,

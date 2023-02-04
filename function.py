@@ -1,7 +1,7 @@
 import os
+import docker
 from dotenv import load_dotenv
 from pip._vendor import requests
-from mcstatus import JavaServer
 from model import Response, ResponseType
 from interactions import Embed, EmbedField, EmbedImageStruct
 
@@ -9,25 +9,27 @@ load_dotenv()
 
 server_data = str()
 
+container_name = os.environ.get("CONTAINER_NAME")
+client = docker.from_env()
+container = client.containers.get(container_name)
 
-def start_ec2():
-    url = os.environ.get("LAMBDA_START_URL")
 
-    res = requests.get(url)
-    if res.status_code == 200:
+def start_container():
+    try:
+        container.start()
         return Response(
             ResponseType.OK, ":white_check_mark: Server is starting, please wait."
         )
-    return Response(ResponseType.ERROR, res.text)
+    except Exception:
+        return Response(ResponseType.ERROR, "res.text")
 
 
-def stop_ec2():
-    url = os.environ.get("LAMBDA_STOP_URL")
-
-    res = requests.get(url)
-    if res.status_code == 200:
+def stop_container():
+    try:
+        container.stop()
         return Response(ResponseType.OK, ":white_check_mark: Server stopped.")
-    return Response(ResponseType.ERROR, res.text)
+    except Exception:
+        return Response(ResponseType.ERROR, "res.text")
 
 
 def status():
@@ -84,6 +86,7 @@ def update_server_data():
     server_data = requests.get(
         "".join(["https://api.mcsrvstat.us/2/", os.environ.get("IP")])
     ).json()
+    print(server_data)
 
 
 def embed_status_builder():
